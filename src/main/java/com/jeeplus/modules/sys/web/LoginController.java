@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -175,14 +176,18 @@ public class LoginController extends BaseController{
 			UserUtils.getSubject().logout();
 			
 		}
-	   // 如果是手机客户端退出跳转到login，则返回JSON字符串
+		//销毁session保证cas注销一致性
+		HttpSession session = request.getSession();
+		session.invalidate();
+		// 如果是手机客户端退出跳转到login，则返回JSON字符串
 			String ajax = request.getParameter("__ajax");
 			if(	ajax!=null){
 				model.addAttribute("success", "1");
 				model.addAttribute("msg", "退出成功");
 				return renderString(response, model);
 			}
-		 return "redirect:" + adminPath+"/login";
+		//重定向到CAS注销页面，（暂时写死后续改到配置文件）
+		 return "redirect:http://localhost:8082/cas/logout";
 	}
 
 	/**
